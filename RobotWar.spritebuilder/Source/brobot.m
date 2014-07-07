@@ -40,6 +40,8 @@ int i = 0;
         }
         
         while (_currentRobotState == RobotStateSearch) {
+            [self turnGunLeft:40];
+            [self shoot];
             [self performNextSearchingAction];
         }
         
@@ -84,7 +86,6 @@ int i = 0;
             
         case 1:
             [self turnRobotLeft:20];
-            [self turnGunLeft:20];
             [self shoot];
             break;
             
@@ -95,8 +96,8 @@ int i = 0;
             
         case 3:
             [self turnRobotRight:20];
-            [self turnGunRight:20];
             [self shoot];
+
             break;
     }
     actionIndex++;
@@ -121,10 +122,11 @@ int i = 0;
 }
 
 -(void)bulletHitEnemy:(Bullet *)bullet{
-     [self cancelActiveAction];
+    [self cancelActiveAction];
     _timeSinceLastEnemyHit = self.currentTimestamp;
     [self shoot];
-    _currentRobotState = RobotStateFire;}
+    _currentRobotState = RobotStateFire;
+}
 
 -(void)gotHit{
     if (_currentRobotState == !RobotStateTurnandRun) {
@@ -145,9 +147,9 @@ int i = 0;
         
         // always turn to head straight away from the wall
         if (angle >= 0) {
-            [self turnRobotLeft:abs(angle)-90];
+            [self turnRobotLeft:abs(abs(angle)-90)];
         } else {
-            [self turnRobotRight:abs(angle)-90];
+            [self turnRobotRight:abs(abs(angle)-90)];
         }
         
         [self moveAhead:20];
