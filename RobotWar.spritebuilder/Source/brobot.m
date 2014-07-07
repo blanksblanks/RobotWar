@@ -27,21 +27,44 @@ typedef NS_ENUM(NSInteger, RobotState)
     RobotState previousState;
     float _timeSinceLastEnemyHit;
 }
+int _currentRobotState = RobotStateSearch;
 
-- (void)run
+-(void)scannedRobot:(Robot *)robot atPosition:(CGPoint)position
+{
+    float angle = [self angleBetweenGunHeadingDirectionAndWorldPosition:position];
+    if (_currentRobotState == !RobotStateTurnandRun) {
+        [self moveAhead:40];
+        _currentRobotState = RobotStateFire;
+        if (angle >= 0){
+            [self turnGunRight:abs(angle)];
+        } else {
+            [self turnGunLeft:abs(angle)];
+        }
+        [self shoot];
+    }
+}
+@end
+
+
+
+
+
+
+
+/*- (void)run
 {
     
     while (true) {
         if (_currentRobotState == RobotStateFire) {
             
-            if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 1.f) {
+            if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 0.3f) {
                 _currentRobotState = RobotStateSearch;
             }
-//            else if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 0.3f) {
-//                    ...
-//                }
-//          ISSUE: when brobot moves his gun, the enemy is already gone :(
-//          Maybe time stamp is too long?
+            //            else if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 0.3f) {
+            //                    ...
+            //                }
+            //          ISSUE: when brobot moves his gun, the enemy is already gone :(
+            //          Maybe time stamp is too long?
             else {
                 CGFloat angle = [self angleBetweenGunHeadingDirectionAndWorldPosition:_lastKnownPosition];
                 CCLOG(@"Enemy Spotted at angle: %f", angle);
@@ -53,7 +76,7 @@ typedef NS_ENUM(NSInteger, RobotState)
                 [self shoot];
             }
         }
-            if (_currentRobotState == RobotStateSearch) {
+        if (_currentRobotState == RobotStateSearch) {
             [self moveAhead:50];
             [self turnRobotLeft:20];
             [self moveAhead:50];
@@ -71,15 +94,15 @@ typedef NS_ENUM(NSInteger, RobotState)
     CCLOG(@"Enemy Spotted at Angle: %f", angle);
     
     if (_currentRobotState == !RobotStateTurnandRun){
-        
+        [self cancelActiveAction];
         [self moveAhead:70];
         _currentRobotState = RobotStateFire;
-
+        
         if (angle >= 0){
-            [self cancelActiveAction];
+            //  [self cancelActiveAction];
             [self turnGunRight:abs(angle)];
         } else {
-            [self cancelActiveAction];
+            // [self cancelActiveAction];
             [self turnGunLeft:abs(angle)];
         }
         [self shoot];
@@ -93,6 +116,7 @@ typedef NS_ENUM(NSInteger, RobotState)
 }
 
 -(void)bulletHitEnemy:(Bullet *)bullet{
+    // this for when the bullet hit enemy, shoot 2 extra
     [self turnGunRight:20];
     [self shoot];
     [self turnGunLeft:40];
@@ -106,7 +130,7 @@ typedef NS_ENUM(NSInteger, RobotState)
 - (void)hitWall:(RobotWallHitDirection)hitDirection hitAngle:(CGFloat)hitAngle {
     if (_currentRobotState != RobotStateTurnandRun) {
         [self cancelActiveAction];
-  
+        
         // RobotState previousState  = _currentRobotState;
         _currentRobotState = RobotStateTurnandRun;
         
@@ -124,5 +148,4 @@ typedef NS_ENUM(NSInteger, RobotState)
         // _currentRobotState = previousState;
     }
     
-}
-@end
+}*/
