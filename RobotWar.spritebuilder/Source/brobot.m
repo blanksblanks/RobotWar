@@ -28,8 +28,10 @@ typedef NS_ENUM(NSInteger, RobotState)
     float _timeSinceLastEnemyHit;
     int actionIndex;
 }
+
 int _currentRobotState = RobotStateSearch;
 int i = 0;
+
 - (void)run {
     actionIndex = 0;
     while (true) {
@@ -50,6 +52,8 @@ int i = 0;
 - (void)performNextDefaultAction {
     switch (actionIndex%1) {
         case 0:
+            [self turnGunRight:10];
+            [self shoot];
             [self moveAhead:100];
             break;
     }
@@ -66,6 +70,7 @@ int i = 0;
         } else {
             [self turnGunLeft:abs(angle)];
         }
+        
         [self shoot];
     }
 }
@@ -79,17 +84,19 @@ int i = 0;
             
         case 1:
             [self turnRobotLeft:20];
-               [self shoot];
+            [self turnGunLeft:20];
+            [self shoot];
             break;
             
         case 2:
             [self moveAhead:50];
-               [self shoot];
+            [self shoot];
             break;
             
         case 3:
             [self turnRobotRight:20];
-               [self shoot];
+            [self turnGunRight:20];
+            [self shoot];
             break;
     }
     actionIndex++;
@@ -112,21 +119,23 @@ int i = 0;
         _lastKnownPositionTimestamp = self.currentTimestamp;
     }
 }
+
 -(void)bulletHitEnemy:(Bullet *)bullet{
      [self cancelActiveAction];
     _timeSinceLastEnemyHit = self.currentTimestamp;
     [self shoot];
     _currentRobotState = RobotStateFire;}
+
 -(void)gotHit{
     if (_currentRobotState == !RobotStateTurnandRun) {
     [self cancelActiveAction];
     _currentRobotState = RobotStateTurnandRun;
     } else {
-        [self moveAhead:90];
+        [self moveAhead:200];
         _currentRobotState = RobotStateSearch;
    }
-    
 }
+
 - (void)hitWall:(RobotWallHitDirection)hitDirection hitAngle:(CGFloat)angle {
     if (_currentRobotState != RobotStateTurnandRun) {
         [self cancelActiveAction];
@@ -136,10 +145,9 @@ int i = 0;
         
         // always turn to head straight away from the wall
         if (angle >= 0) {
-            [self turnRobotLeft:abs(angle)];
+            [self turnRobotLeft:abs(angle)-90];
         } else {
-            [self turnRobotRight:abs(angle)];
-            
+            [self turnRobotRight:abs(angle)-90];
         }
         
         [self moveAhead:20];
