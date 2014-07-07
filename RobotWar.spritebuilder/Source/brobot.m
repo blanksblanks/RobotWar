@@ -57,6 +57,7 @@ int i = 0;
             [self turnGunRight:10];
             [self shoot];
             [self moveAhead:100];
+            CCLOG(@"Hi!");
             break;
     }
     actionIndex++;
