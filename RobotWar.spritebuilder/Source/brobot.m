@@ -14,7 +14,7 @@ typedef NS_ENUM(NSInteger, RobotState)
     RobotStateDefault,
     RobotStateAim,
     RobotStateSearch,
-    RobotStateFire,
+   RobotStateFire,
     RobotStateTurnandRun,
     RobotStateRevenge,
 };
@@ -26,51 +26,78 @@ typedef NS_ENUM(NSInteger, RobotState)
     CGFloat _lastKnownPositionTimestamp;
     RobotState previousState;
     float _timeSinceLastEnemyHit;
+    int actionIndex;
 }
 int _currentRobotState = RobotStateSearch;
 int i = 0;
--(void)run
-{
+- (void)run {
+    actionIndex = 0;
     while (true) {
-        if (_currentRobotState == RobotStateFire){
-            if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 1.f) {
-                _currentRobotState = RobotStateSearch;
-            }
-            else {
-                [self shoot];
-            }
-
-        }
-        if (_currentRobotState == RobotStateSearch){
-            i++;
-            while (i<10) {
-            [self turnGunLeft:40];
-                [self shoot];
-            }if (i == 10) {
-                _currentRobotState = RobotStateDefault;
-            }
-        }
-        if (_currentRobotState == RobotStateDefault){
-            [self moveAhead:35];
-            i--;
-            if (i == 0) {
-                _currentRobotState = RobotStateSearch;
-            }
-            
-        }
-        if (_currentRobotState == RobotStateTurnandRun){
-            [self moveAhead:70];
-            [self turnRobotRight:45];
-            [self moveAhead:50];
-            _currentRobotState = RobotStateSearch;
+        while (_currentRobotState == RobotStateFire) {
+            [self performNextFiringAction];
         }
         
+        while (_currentRobotState == RobotStateSearch) {
+            [self performNextSearchingAction];
+        }
+        
+        while (_currentRobotState == RobotStateDefault) {
+            [self performNextDefaultAction];
+        }
     }
+}
+
+- (void)performNextDefaultAction {
+    switch (actionIndex%1) {
+        case 0:
+            [self moveAhead:100];
+            break;
+    }
+    actionIndex++;
+}
+
+- (void) performNextFiringAction {
+    if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 1.f) {
+       _currentRobotState = RobotStateSearch;
+    } else {
+        CGFloat angle = [self angleBetweenGunHeadingDirectionAndWorldPosition:_lastKnownPosition];
+        if (angle >= 0) {
+            [self turnGunRight:abs(angle)];
+        } else {
+            [self turnGunLeft:abs(angle)];
+        }
+        [self shoot];
+    }
+}
+
+- (void)performNextSearchingAction {
+    switch (actionIndex%4) {
+        case 0:
+            [self moveAhead:50];
+            [self shoot];
+            break;
+            
+        case 1:
+            [self turnRobotLeft:20];
+               [self shoot];
+            break;
+            
+        case 2:
+            [self moveAhead:50];
+               [self shoot];
+            break;
+            
+        case 3:
+            [self turnRobotRight:20];
+               [self shoot];
+            break;
+    }
+    actionIndex++;
 }
 
 -(void)scannedRobot:(Robot *)robot atPosition:(CGPoint)position
 {
-    if (_currentRobotState == !RobotStateFire) {
+    if (_currentRobotState == !RobotStateFire){
     [self cancelActiveAction];
         [self moveAhead:70];
         CGFloat angle = [self angleBetweenGunHeadingDirectionAndWorldPosition:_lastKnownPosition];
@@ -89,8 +116,7 @@ int i = 0;
      [self cancelActiveAction];
     _timeSinceLastEnemyHit = self.currentTimestamp;
     [self shoot];
-    _currentRobotState = RobotStateFire;
-}
+    _currentRobotState = RobotStateFire;}
 -(void)gotHit{
     if (_currentRobotState == !RobotStateTurnandRun) {
     [self cancelActiveAction];
@@ -98,7 +124,7 @@ int i = 0;
     } else {
         [self moveAhead:90];
         _currentRobotState = RobotStateSearch;
-    }
+   }
     
 }
 - (void)hitWall:(RobotWallHitDirection)hitDirection hitAngle:(CGFloat)angle {
@@ -130,48 +156,53 @@ int i = 0;
 
 
 
-/*- (void)run
-{
-    
-    while (true) {
-        if (_currentRobotState == RobotStateFire) {
-            
-            if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 0.3f) {
-                _currentRobotState = RobotStateSearch;
-            }
-            //            else if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 0.3f) {
-            //                    ...
-            //                }
-            //          ISSUE: when brobot moves his gun, the enemy is already gone :(
-            //          Maybe time stamp is too long?
-            else {
-                CGFloat angle = [self angleBetweenGunHeadingDirectionAndWorldPosition:_lastKnownPosition];
-                CCLOG(@"Enemy Spotted at angle: %f", angle);
-                if (angle >= 0) {
-                    [self turnGunRight:abs(angle)];
-                } else {
-                    [self turnGunLeft:abs(angle)];
-                }
-                [self shoot];
-            }
-        }
-        if (_currentRobotState == RobotStateSearch) {
-            [self moveAhead:50];
-            [self turnRobotLeft:20];
-            [self moveAhead:50];
-            [self turnRobotRight:20];
-        }
-    }
-}
+/*-(void)run
+ {
+ while (true) {
+ if (_currentRobotState == RobotStateFire){
+ if ((self.currentTimestamp - _lastKnownPositionTimestamp) > 1.f) {
+ _currentRobotState = RobotStateSearch;
+ }
+ else {
+ [self shoot];
+ }
+ 
+ }
+ if (_currentRobotState == RobotStateSearch){
+ i++;
+ while (i<10) {
+ [self turnGunLeft:40];
+ [self shoot];
+ }if (i == 10) {
+ _currentRobotState = RobotStateDefault;
+ }
+ }
+ if (_currentRobotState == RobotStateDefault){
+ [self moveAhead:35];
+ i--;
+ if (i == 0) {
+ _currentRobotState = RobotStateSearch;
+ }
+ 
+ }
+ if (_currentRobotState == RobotStateTurnandRun){
+ [self moveAhead:70];
+ [self turnRobotRight:45];
+ [self moveAhead:50];
+ _currentRobotState = RobotStateSearch;
+ }
+ 
+ }
+ }
 
 -(void)scannedRobot:(Robot*)robot atPosition:(CGPoint)position{
-    
+ 
     // Calculate the angle between brobot and the enemy
     float angle = [self angleBetweenGunHeadingDirectionAndWorldPosition:position];
-    
+ 
     CCLOG(@"Enemy Position: (%f, %f)", position.x, position.y);
     CCLOG(@"Enemy Spotted at Angle: %f", angle);
-    
+ 
     if (_currentRobotState == !RobotStateTurnandRun){
         [self cancelActiveAction];
         [self moveAhead:70];
