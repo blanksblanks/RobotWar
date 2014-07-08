@@ -14,7 +14,7 @@ typedef NS_ENUM(NSInteger, RobotState)
     RobotStateDefault,
     RobotStateAim,
     RobotStateSearch,
-   RobotStateFire,
+    RobotStateFire,
     RobotStateTurnandRun,
     RobotStateRevenge,
 };
@@ -53,12 +53,20 @@ int i = 0;
 
 - (void)performNextDefaultAction {
     switch (actionIndex%1) {
-        case 0:
-            [self turnGunRight:10];
-            [self shoot];
-            [self moveAhead:100];
-            CCLOG(@"Hi!");
+        case 0: {
+            CGPoint currentPosition = [self position];
+            CGSize arenaSize = [self arenaDimensions];
+            if (currentPosition.y < arenaSize.height/2) {
+                [self turnGunRight:10];
+                [self shoot];
+                [self moveAhead:100];
+            } else {
+                [self turnGunLeft:10];
+                [self shoot];
+                [self moveAhead:100];
+            }
             break;
+        }
     }
     actionIndex++;
 }
